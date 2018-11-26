@@ -1,6 +1,6 @@
 from flask import Flask,jsonify,request
 from flasgger import Swagger
-from sklearn.externals import joblib
+# from sklearn.externals import joblib
 import numpy as np
 from flask_cors import CORS
 
@@ -8,8 +8,18 @@ app = Flask(__name__)
 Swagger(app)
 CORS(app)
 
-@app.route('/input/task', methods=['POST'])
+from sklearn.datasets import load_iris
+iris_dataset = load_iris()
 
+from sklearn.model_selection import train_test_split
+X_train,X_test,y_train,y_test = train_test_split(
+    iris_dataset.data, iris_dataset.target, random_state=0)
+
+from sklearn.neighbors import KNeighborsClassifier
+clf = KNeighborsClassifier(n_neighbors=1)
+clf.fit(X_train,y_train)
+
+@app.route("/", methods=['POST'])
 def predict():
     """
     Ini Adalah Endpoint Untuk Memprediksi IRIS
@@ -57,8 +67,8 @@ def predict():
 
     X_New = np.array([[petalLength,petalWidth,sepalLength,sepalWidth]])
 
-    clf = joblib.load('knnClasifier.pkl')
+    # clf = joblib.load('knnClasifier.pkl')
 
-    resultPredict = clf[0].predict(X_New)
+    resultPredict = clf.predict(X_New)
 
-    return jsonify({'message': format(clf[1].target_names[resultPredict])})
+    return jsonify({'message': format(iris_dataset.target_names[resultPredict])})
