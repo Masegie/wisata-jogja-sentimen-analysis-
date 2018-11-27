@@ -1,28 +1,20 @@
 from flask import Flask,jsonify,request
 from flasgger import Swagger
-# from sklearn.externals import joblib
+from sklearn.externals import joblib
 import numpy as np
 from flask_cors import CORS
+
+import pandas
+#import iki ra nemu nang requirements.txtne mesti raono
 
 app = Flask(__name__)
 Swagger(app)
 CORS(app)
 
-from sklearn.datasets import load_iris
-iris_dataset = load_iris()
-
-from sklearn.model_selection import train_test_split
-X_train,X_test,y_train,y_test = train_test_split(
-    iris_dataset.data, iris_dataset.target, random_state=0)
-
-from sklearn.neighbors import KNeighborsClassifier
-clf = KNeighborsClassifier(n_neighbors=1)
-clf.fit(X_train,y_train)
-
-@app.route("/", methods=['POST'])
+@app.route('/input/task', methods=['POST'])
 def predict():
     """
-    Ini Adalah Endpoint Untuk Memprediksi IRIS
+    Ini Adalah Endpoint Untuk Mengevaluasi Jenis Kalimat
     ---
     tags:
         - Rest Controller
@@ -31,28 +23,13 @@ def predict():
         in: body
         required: true
         schema:
-          id: Petal
+          id: Sentence
           required:
-            - petalLength
-            - petalWidth
-            - sepalLength
-            - sepalWidth
+            - textSentence
           properties:
-            petalLength:
-              type: int
-              description: Please input with valid Sepal and Petal Length-Width.
-              default: 0
-            petalWidth:
-              type: int
-              description: Please input with valid Sepal and Petal Length-Width.
-              default: 0
-            sepalLength:
-              type: int
-              description: Please input with valid Sepal and Petal Length-Width.
-              default: 0
-            sepalWidth:
-              type: int
-              description: Please input with valid Sepal and Petal Length-Width.
+            textSentence:
+              type: string
+              description: Please input with valid text.
               default: 0
     responses:
         200:
@@ -60,15 +37,15 @@ def predict():
     """
     new_task = request.get_json()
 
-    petalLength = new_task['petalLength']
-    petalWidth = new_task['petalWidth']
-    sepalLength = new_task['sepalLength']
-    sepalWidth = new_task['sepalWidth']
+    textSentence = new_task['textSentence']
 
-    X_New = np.array([[petalLength,petalWidth,sepalLength,sepalWidth]])
+    X_New = np.array([textSentence])
 
-    # clf = joblib.load('knnClasifier.pkl')
+    pipe = joblib.load('SVMClassifierfix.pkl')
 
-    resultPredict = clf.predict(X_New)
+    resultPredict = pipe[0].predict(X_New)
 
-    return jsonify({'message': format(iris_dataset.target_names[resultPredict])})
+    return jsonify({'message': format(resultPredict)})
+
+if __name__ == '__main__' :
+ app.run(debug=True)
